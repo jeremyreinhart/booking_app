@@ -1,6 +1,11 @@
 import { NextFunction, Request, Response } from "express";
 import { LoginSchema, RegisterSchema } from "../validation/userAuth";
-import { loginUser, registerAdmin, registerUser } from "../services/user-auth";
+import {
+  getUserLogin,
+  loginUser,
+  registerAdmin,
+  registerUser,
+} from "../services/user-auth";
 import { AuthRequest } from "../middlewares/auth";
 import { AppError } from "../errors/AppError";
 
@@ -44,7 +49,11 @@ export const handleRegisterUser = async (
       },
     });
   } catch (error) {
-    next(new AppError("Failed to Register User", 500));
+    if (error instanceof AppError) {
+      next(error);
+    } else {
+      next(new AppError("Failed to Register User", 500));
+    }
   }
 };
 
@@ -75,7 +84,11 @@ export const handleCreateAdmin = async (
       },
     });
   } catch (error) {
-    next(new AppError("Failed to Create Admin", 500));
+    if (error instanceof AppError) {
+      next(error);
+    } else {
+      next(new AppError("Failed to Create Admin", 500));
+    }
   }
 };
 
@@ -122,6 +135,42 @@ export const handleLoginUser = async (
       },
     });
   } catch (error) {
-    next(new AppError("Failed to Login User", 500));
+    console.error(error);
+    if (error instanceof AppError) {
+      next(error);
+    } else {
+      next(new AppError("Failed to Login User", 500));
+    }
   }
+};
+
+export const userLogin = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    const user = await getUserLogin(req.user.id);
+    res.json({ data: user });
+  } catch (error) {
+    if (error instanceof AppError) {
+      next(error);
+    } else {
+      next(new AppError("Failed to Login User", 500));
+    }
+  }
+};
+
+export const userLogout = (req: Request, res: Response, next: NextFunction) => {
+  res.cookie("token", "", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    expires: new Date(0),
+  });
+
+  res.status(200).json({ message: "Logout Berhasil" });
 };

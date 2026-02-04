@@ -65,6 +65,7 @@ export const getSlotsController = async (
       data: {
         id: field.id,
         name: field.name,
+        description: field.description,
         price: field.price,
         slots,
       },

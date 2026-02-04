@@ -8,6 +8,7 @@ import {
 } from "../services/user-auth";
 import { AuthRequest } from "../middlewares/auth";
 import { AppError } from "../errors/AppError";
+import { prisma } from "../prisma/client";
 
 export const handleRegisterUser = async (
   req: Request,
@@ -181,4 +182,23 @@ export const userLogout = (req: Request, res: Response, next: NextFunction) => {
   });
 
   res.status(200).json({ status: "success", message: "Logout Berhasil" });
+};
+
+export const handleGetAdmins = async (req: Request, res: Response) => {
+  const admins = await prisma.user.findMany({
+    where: { role: "ADMIN" },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      createdAt: true,
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  res.json({
+    status: "success",
+    data: admins,
+  });
 };

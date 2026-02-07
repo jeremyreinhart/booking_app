@@ -140,7 +140,7 @@ export const userCancelBooking = async (
     res.status(200).json({
       status: "success",
       message: "Booking cancelled successfully",
-      data: booking,
+      data: cancel,
     });
   } catch (error) {
     if (error instanceof AppError) {

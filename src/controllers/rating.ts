@@ -55,3 +55,36 @@ export const createReview = async (
     next(new AppError("Internal Server Error", 500));
   }
 };
+
+export const checkReviewEligibility = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const userId = req.user!.id;
+    const { fieldId } = req.params;
+
+    // Cari booking terakhir milik user di lapangan ini yang statusnya CONFIRMED
+    // dan BELUM memiliki review
+    const booking = await prisma.booking.findFirst({
+      where: {
+        fieldId: Number(fieldId),
+        userId: Number(userId),
+        status: "CONFIRMED",
+        review: null, // Hanya ambil yang belum direview
+      },
+      orderBy: { createdAt: "desc" }, // Ambil yang paling baru
+    });
+
+    res.status(200).json({
+      status: "success",
+      data: {
+        eligible: !!booking,
+        bookingId: booking ? booking.id : null,
+      },
+    });
+  } catch (error) {
+    next(new AppError("Failed to check eligibility", 500));
+  }
+};

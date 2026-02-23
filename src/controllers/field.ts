@@ -125,7 +125,7 @@ export const updateField = async (
       id,
       name,
       description ?? null,
-      price,
+      Number(price),
       imageUrl,
     );
 
